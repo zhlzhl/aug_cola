@@ -26,3 +26,5 @@ nltk.download('wordnet')
 2. synonyms are queried from wordnet.synsets(word, pos=pos_map[pos]). I assume this method is based on word embeddings from wordnet. 
 
 3. Didn't create a dictionary of all words in the dataset. Not sure how is this needed. 
+
+4. dataset location in augment_cola.py is hard coded. needs to edit input_file and out_file.
