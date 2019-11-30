@@ -29,7 +29,7 @@ nltk.download('wordnet')
 
 4. dataset location in augment_cola.py is hard coded. needs to edit input_file and out_file.
 
-5. when a word to be replace occurs more than once in a sentence, all occurences are replaced. Check out the log below
+5. when a word to be replaced occurs more than once in a sentence, all occurences are replaced. Check out the log below
 ```
 AssertionError
 sentence: I require to explain exactly why the more you eat , the less you require .
