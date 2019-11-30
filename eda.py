@@ -22,7 +22,7 @@ def get_synonyms(word, pos):
                "VERB": 'v'}
 
     synonyms = set()
-    for syn in wordnet.synsets(word, pos=pos_map['VERB']):
+    for syn in wordnet.synsets(word, pos=pos_map[pos]):
         for l in syn.lemmas():
             synonym = l.name().replace("_", " ").replace("-", " ").lower()
             synonym = "".join([char for char in synonym if char in ' qwertyuiopasdfghjklzxcvbnm'])
@@ -37,7 +37,13 @@ def replace(sentence, nlp, the_word, synonym):
     sentence_words = [token.text for token in tokenized_sentence]
 
     # replace the_word with synonym
-    assert the_word in sentence_words
+    try:
+        assert the_word in sentence_words
+    except AssertionError:
+        print("AssertionError")
+        print("sentence: {}\nthe world: {}\nsynonym: {}".format(sentence, the_word, synonym))
+        return None
+
     new_words = [synonym if word == the_word else word for word in sentence_words]
     new_sentence = ' '.join(new_words)
 
@@ -52,6 +58,7 @@ def synonym_replacement(sentence, nlp, words_to_replace, num_sr_words):
     random_word_list = words_to_replace.copy()
     random.shuffle(random_word_list)
 
+    new_sentence = None
     # randomly select a word from the word_to_replace, and replace it with its synonym
     num_replaced_words = 0
     for random_word, pos in random_word_list:
@@ -60,8 +67,9 @@ def synonym_replacement(sentence, nlp, words_to_replace, num_sr_words):
             synonym = random.choice(list(synonyms))
             new_sentence = replace(sentence, nlp, random_word, synonym)
 
-            sentence = new_sentence
-            num_replaced_words += 1
+            if new_sentence is not None and new_sentence != sentence:
+                sentence = new_sentence
+                num_replaced_words += 1
 
         if num_replaced_words >= num_sr_words:  # only replace up to n_sr words
             break
@@ -85,7 +93,7 @@ def augment_sentence(sentence, pos, num_sr_words, num_aug_sentences=9):
             break
 
         new_sentence = synonym_replacement(sentence, nlp, words_to_replace, num_sr_words)
-        if new_sentence not in augmented_sentences:
+        if new_sentence not in augmented_sentences and new_sentence is not None:
             augmented_sentences.append(new_sentence)
 
         count += 1
