@@ -1,9 +1,8 @@
-
 import random
 from random import shuffle
 from token_utils import tokenize, untokenize
 # for the first time you use wordnet
-import nltk
+# import nltk
 # nltk.download('punkt')
 # nltk.download('wordnet')
 from nltk.corpus import wordnet
@@ -74,31 +73,34 @@ import random
 
 
 ## randomly swap two words in a sentence
-def rand_swap(sent, distance=1):
+def random_swap(sentence, distance=1):
     """
     randomly swap words in a sentence
-    :params[in]: sent, a string, input sentence
+    :params[in]: sentence, a string, input sentence
     :params[in]: distance, integer, distance of words
 
-    :params[out]: n_sen, a string, new sentence
+    :params[out]: n_sentence, a string, new sentence
     """
-    lis = sent.split(' ')  # split by spaces
-    len0 = len(lis)
-    int1 = random.randint(0, len0 - 1)
-    ## canidates pool
-    cands = set(range(int1 - distance, int1 + distance + 1)) & set(range(len0))
-    cands.remove(int1)
-    ## randomly sample another index
-    int2 = random.sample(cands, 1)[0]
-    ## swap two elements
-    lis[int1], lis[int2] = lis[int2], lis[int1]
-    n_sen = ' '.join(lis)
-    ## return new sentence
-    return n_sen
+    # lis = sent.split(' ')  # split by spaces
+    tokens = tokenize(sentence)
+    tokens_length = len(tokens)
+    index1 = random.randint(0, tokens_length - 1)
+    # canidates pool
+    candidates = set(range(index1 - distance, index1 + distance + 1)) & set(range(tokens_length))
+    candidates.remove(index1)
+    # randomly sample another index
+    index2 = random.sample(candidates, 1)[0]
+    # swap two elements
+    tokens[index1], tokens[index2] = tokens[index2], tokens[index1]
+    # n_sen = ' '.join(lis)
+    n_sentence = untokenize(tokens)
+    # return new sentence
+    return n_sentence
+
 
 if __name__ == "__main__":
     sentence = "I'd like to know when he's coming."
 
     print(sentence)
-    new_sentence = replace(sentence, "he", "she")
+    new_sentence = random_swap(sentence)
     print(new_sentence)
