@@ -52,12 +52,13 @@ def augment_file(input, output, method, pos=None, num_words=0, num_aug_sentences
 
     writer = open(output, 'w')
     lines = open(input, 'r').readlines()
+    index = -1 # index is -1 as the first line is header with index -1, the content starts with index 0
 
     for i, line in enumerate(lines):
         aug_sentences=[]
         parts = line[:-1].split('\t')
-        label = parts[1]  # the second column is label
-        sentence = parts[3]  # the fourth column is sentence
+        label = parts[3]  # the second column is label
+        sentence = parts[1]  # the fourth column is sentence
         if method == "SR-POS":
             assert pos is not None
             aug_sentences = augment_sentence(sentence, method, pos=pos,
@@ -70,7 +71,12 @@ def augment_file(input, output, method, pos=None, num_words=0, num_aug_sentences
                 aug_sentences = [sentence] # no change, just write out the original sentence
 
         for aug_sentence in aug_sentences:
-            writer.write(parts[0] + "\t" + label + "\t" + parts[2] + "\t" + aug_sentence + '\n')
+            # new_line = (parts[0] if index == 0 else str(index)) + "\t" + aug_sentence + "\t" + parts[2] + "\t" + label + '\n'
+            writer.write("{}\t{}\t{}\t{}\n".format(parts[0] if index == -1 else str(index),
+                                                   aug_sentence,
+                                                   parts[2],
+                                                   label))
+            index += 1
 
         if i % 10 == 0:
             print("--processed {} lines".format(i))
@@ -82,8 +88,8 @@ def augment_file(input, output, method, pos=None, num_words=0, num_aug_sentences
 
 if __name__ == "__main__":
     # for testing purpose
-    input_file = '/home/user/git/nlp_data/glue/data/CoLA_backup/train.tsv'
-    output_file = '/home/user/git/nlp_data/glue/data/CoLA/train.tsv'
+    input_file = '/home/user/git/nlp_data/glue/data/RTE_backup/train.tsv'
+    output_file = '/home/user/git/nlp_data/glue/data/RTE/train.tsv'
 
     # 1. pre-process all sentences with pycontractions:
     # contraction = Contractions(api_key="glove-twitter-100")
@@ -100,5 +106,6 @@ if __name__ == "__main__":
 
 
     # augument negative sentences using random swap
-    augment_file(input_file, output_file, method="RS", num_aug_sentences=2, distance=1, labels=['0'])
+    augment_file(input_file, output_file, method="RS", num_aug_sentences=2, distance=1,
+                 labels=['entailment', 'not_entailment'])
 
