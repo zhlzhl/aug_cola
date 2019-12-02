@@ -1,15 +1,10 @@
 
 import random
 from random import shuffle
-import spacy
-
-########################################################################
-# Synonym replacement
-# Replace n words in the sentence with synonyms from wordnet
-########################################################################
-
+from token_utils import tokenize, untokenize
 # for the first time you use wordnet
-# import nltk
+import nltk
+# nltk.download('punkt')
 # nltk.download('wordnet')
 from nltk.corpus import wordnet
 
@@ -32,20 +27,18 @@ def get_synonyms(word, pos):
     return list(synonyms)
 
 
-def replace(sentence, nlp, the_word, synonym):
-    tokenized_sentence = nlp(sentence)
-    sentence_words = [token.text for token in tokenized_sentence]
-
+def replace(sentence, the_word, synonym):
+    tokens = tokenize(sentence)
     # replace the_word with synonym
     try:
-        assert the_word in sentence_words
+        assert the_word in tokens
     except AssertionError:
         print("AssertionError")
         print("sentence: {}\nthe world: {}\nsynonym: {}".format(sentence, the_word, synonym))
         return None
 
-    new_words = [synonym if word == the_word else word for word in sentence_words]
-    new_sentence = ' '.join(new_words)
+    new_tokens = [synonym if word == the_word else word for word in tokens]
+    new_sentence = untokenize(new_tokens)
 
     # print("--old: ", sentence)
     # print("replaced", the_word, "with", synonym)
@@ -54,7 +47,7 @@ def replace(sentence, nlp, the_word, synonym):
     return new_sentence
 
 
-def synonym_replacement(sentence, nlp, words_to_replace, num_sr_words):
+def synonym_replacement(sentence, words_to_replace, num_sr_words):
     random_word_list = words_to_replace.copy()
     random.shuffle(random_word_list)
 
@@ -65,7 +58,7 @@ def synonym_replacement(sentence, nlp, words_to_replace, num_sr_words):
         synonyms = get_synonyms(random_word, pos)
         if len(synonyms) >= 1:
             synonym = random.choice(list(synonyms))
-            new_sentence = replace(sentence, nlp, random_word, synonym)
+            new_sentence = replace(sentence, random_word, synonym)
 
             if new_sentence is not None and new_sentence != sentence:
                 sentence = new_sentence
@@ -77,33 +70,35 @@ def synonym_replacement(sentence, nlp, words_to_replace, num_sr_words):
     return new_sentence
 
 
-def augment_sentence(sentence, pos, num_sr_words, num_aug_sentences=9):
-    nlp = spacy.load("en_core_web_sm")
-    tokenized_sentence = nlp(sentence)
+import random
 
-    # get verbs and nouns
-    words_to_replace = [(token.text, token.pos_) for token in tokenized_sentence if token.pos_ in pos]
 
-    augmented_sentences = []
-    # append the original sentence
-    augmented_sentences.append(sentence)
-    count = 0
-    while len(augmented_sentences) < num_aug_sentences +1:
-        if count >= 50:  # make sure there is no more than 50 iterations
-            break
+## randomly swap two words in a sentence
+def rand_swap(sent, distance=1):
+    """
+    randomly swap words in a sentence
+    :params[in]: sent, a string, input sentence
+    :params[in]: distance, integer, distance of words
 
-        new_sentence = synonym_replacement(sentence, nlp, words_to_replace, num_sr_words)
-        if new_sentence not in augmented_sentences and new_sentence is not None:
-            augmented_sentences.append(new_sentence)
-
-        count += 1
-
-    shuffle(augmented_sentences)
-
-    return augmented_sentences
-
+    :params[out]: n_sen, a string, new sentence
+    """
+    lis = sent.split(' ')  # split by spaces
+    len0 = len(lis)
+    int1 = random.randint(0, len0 - 1)
+    ## canidates pool
+    cands = set(range(int1 - distance, int1 + distance + 1)) & set(range(len0))
+    cands.remove(int1)
+    ## randomly sample another index
+    int2 = random.sample(cands, 1)[0]
+    ## swap two elements
+    lis[int1], lis[int2] = lis[int2], lis[int1]
+    n_sen = ' '.join(lis)
+    ## return new sentence
+    return n_sen
 
 if __name__ == "__main__":
-    sentence = "Bill coughed his way out of the restaurant."
-    augment_sentences = augment_sentence(sentence, ["VERB", "NOUN"], num_sr_words=2, num_aug_sentences=6)
-    print(augment_sentences)
+    sentence = "I'd like to know when he's coming."
+
+    print(sentence)
+    new_sentence = replace(sentence, "he", "she")
+    print(new_sentence)
