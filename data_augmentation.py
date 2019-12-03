@@ -6,6 +6,7 @@ from token_utils import tokenize, untokenize
 # nltk.download('punkt')
 # nltk.download('wordnet')
 from nltk.corpus import wordnet
+import spacy
 
 
 def get_synonyms(word, pos):
@@ -84,6 +85,7 @@ def random_swap(sentence, distance=1):
     # lis = sent.split(' ')  # split by spaces
     tokens = tokenize(sentence)
     tokens_length = len(tokens)
+    assert tokens_length >= 2
     index1 = random.randint(0, tokens_length - 1)
     # canidates pool
     candidates = set(range(index1 - distance, index1 + distance + 1)) & set(range(tokens_length))
@@ -98,9 +100,49 @@ def random_swap(sentence, distance=1):
     return n_sentence
 
 
+def random_deletion(sentence, n=1):
+    tokens = tokenize(sentence)
+
+    # obviously, if there's only one word, don't delete it
+    if len(tokens) == 1:
+        return tokens
+
+    # randomly delete upto n words
+    count = 0
+    while count < n:
+        assert n < len(tokens)
+        rand_index = random.randint(0, len(tokens) - 1)
+        del tokens[rand_index]
+        count += 1
+
+    return untokenize(tokens)
+
+# TODO:there is a bug delete_pos method, and needs to be further investigated.
+# def delete_pos(sentence, pos):
+#     nlp = spacy.load("en_core_web_sm")
+#     tokens = nlp(sentence)
+#
+#     # get verbs and nouns
+#     print(len(tokens))
+#     print(range(len(tokens)))
+#     print(zip(range(len(tokens)), tokens))
+#     for i, token in zip(range(len(tokens), tokens)):
+#         print("{}, {}".format(i, token.text, token.pos_))
+#     index_of_words_to_delete = [i for i, token in zip(range(len(tokens), tokens)) if token.pos_ in pos]
+#
+#     # obviously, if there's only one word, don't delete it
+#     if len(tokens) == 1:
+#         return tokens[0].text
+#
+#     # delete words of pos
+#     del tokens[index_of_words_to_delete]
+#
+#     return untokenize([token.text for token in tokens])
+
+
 if __name__ == "__main__":
     sentence = "I'd like to know when he's coming."
 
-    print(sentence)
-    new_sentence = random_swap(sentence)
-    print(new_sentence)
+    # print(sentence)
+    # new_sentence = delete_pos(sentence, "ADP")
+    # print(new_sentence)
